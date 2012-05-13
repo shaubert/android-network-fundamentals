@@ -1,5 +1,6 @@
 package com.shaubert.net.test;
 
+import com.shaubert.net.core.DefaultExecutorBridge;
 import com.shaubert.net.core.DefaultJournal;
 import com.shaubert.net.nutshell.RequestStatus;
 
@@ -46,7 +47,7 @@ public class ExecutorTests extends ServiceTestCase<NormalExecutor> {
         super.setUp();
         repository = new SimpleRepository();
         NormalExecutor.repository = repository;
-        journal = new DefaultJournal(repository, new NormalExecutor.Bridge(new MyContex(this)));
+        journal = new DefaultJournal(repository, new DefaultExecutorBridge(new MyContex(this), NormalExecutor.class));
     }
 
     public void testExecution() throws Exception {
