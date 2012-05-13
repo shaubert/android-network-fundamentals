@@ -8,4 +8,8 @@ public interface Journal<T extends Request> {
  
     void cancel(long requestId);
     
+    void registerForUpdates(T request);
+    
+    void unregisterForUpdates(T request);
+    
 }

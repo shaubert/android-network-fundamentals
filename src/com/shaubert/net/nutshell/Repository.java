@@ -1,5 +1,7 @@
 package com.shaubert.net.nutshell;
 
+import android.database.ContentObserver;
+
 import java.util.List;
 
 
@@ -21,4 +23,9 @@ public interface Repository<T> {
     
     void deleteAll();
     
+    void registerObserver(ContentObserver observer);
+    
+    void registerObserver(long entityId, ContentObserver observer);
+    
+    void unregisterObserver(ContentObserver observer);
 }

@@ -10,6 +10,7 @@ import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.OperationApplicationException;
+import android.database.ContentObserver;
 import android.database.Cursor;
 import android.database.DatabaseUtils;
 import android.net.Uri;
@@ -179,6 +180,21 @@ public class RequestRepository implements Repository<RequestBase> {
     @Override
     public void deleteAll() {
         contentResolver.delete(uri, null, null);
+    }
+
+    @Override
+    public void registerObserver(ContentObserver observer) {
+        contentResolver.registerContentObserver(uri, true, observer);
+    }
+
+    @Override
+    public void registerObserver(long entityId, ContentObserver observer) {
+        contentResolver.registerContentObserver(ContentUris.withAppendedId(uri, entityId), false, observer);
+    }
+    
+    @Override
+    public void unregisterObserver(ContentObserver observer) {
+        contentResolver.unregisterContentObserver(observer);
     }
 
 }

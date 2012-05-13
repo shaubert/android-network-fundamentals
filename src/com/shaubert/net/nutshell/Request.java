@@ -5,6 +5,8 @@ public interface Request {
 
     RequestState getState();
     
+    void setState(RequestState state);
+    
     void execute(ExecutionContext executionContext) throws Exception;
     
     boolean isCancelled();
