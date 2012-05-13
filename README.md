@@ -31,61 +31,61 @@ The `RequestState` at the base implementation contains unique identifier, execut
 
 After you create a `Request` you should register it in the `Journal`:
 
-  public class DefaultJournal implements Journal<RequestBase> {
-    
-      ...
-
-      @Override
-      public void register(RequestBase request) {
-          request.getState().setStatus(RequestStatus.NOT_STARTED);
-          repository.insert(request);
-          executorBridge.queueRequest(request.getState().getId());
-      };
+    public class DefaultJournal implements Journal<RequestBase> {
       
-      ...
-  }
+        ...
+
+        @Override
+        public void register(RequestBase request) {
+            request.getState().setStatus(RequestStatus.NOT_STARTED);
+            repository.insert(request);
+            executorBridge.queueRequest(request.getState().getId());
+        };
+        
+        ...
+    }
   
 The registration includes storing request in the repository (receiving id) and queueing the request. The default implementation of `ExecutorBridge` will create new `Intent` with provided id and start the `RequestExecutor`. The `RequestExecutor` is based on the `IntentService` so it has a single `HandlerThread` but with modified `onStart()` logic to process intents with cancel action. Requests executes consequentially in the separate thread. In addition, `RequestExecutor` changes request's state as it follows the execution process:
 
-  public class RequestExecutor extends Service implements ExecutionContext {
+    public class RequestExecutor extends Service implements ExecutionContext {
 
-      ...
-      
-      protected void execute(RequestBase request) {
-          request.getState().setStatus(RequestStatus.PROCESSING);
-          repository.update(request);
+        ...
+        
+        protected void execute(RequestBase request) {
+            request.getState().setStatus(RequestStatus.PROCESSING);
+            repository.update(request);
 
-          RequestStatus status = RequestStatus.FINISHED;
-          try {
-              request.execute(this);
-          } catch (Exception e) {
-              Log.w(getClass().getSimpleName(), null, e);
-              status = RequestStatus.FINISHED_WITH_ERRORS;
-          }
-          
-          request.getState().setStatus(status);
-          repository.update(request);
-      }
-      
-      ...
-      
-  }
+            RequestStatus status = RequestStatus.FINISHED;
+            try {
+                request.execute(this);
+            } catch (Exception e) {
+                Log.w(getClass().getSimpleName(), null, e);
+                status = RequestStatus.FINISHED_WITH_ERRORS;
+            }
+            
+            request.getState().setStatus(status);
+            repository.update(request);
+        }
+        
+        ...
+        
+    }
   
 All communications with the storage goes through the `Repositoty<T>` interface:
 
-  public interface Repository<T> {
+    public interface Repository<T> {
 
-      T select(long id);
-      
-      void insert(T entity);
-      
-      void update(T entity);
-      
-      void delete(T entity);
+        T select(long id);
         
-      ...
-      
-  }
+        void insert(T entity);
+        
+        void update(T entity);
+        
+        void delete(T entity);
+          
+        ...
+        
+    }
   
 The default implementation `RequestRepository` delegates calls to the `ContentResolver`. Additionally it adds extra keys to the `ContentValues` received from the `RequestStateBase`:
 
