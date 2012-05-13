@@ -14,7 +14,7 @@ How it works
 ------------
 
 Each operation or request has it's own execution logic and separated state:
-
+`
   public interface Request {
 
       RequestState getState();
@@ -26,7 +26,7 @@ Each operation or request has it's own execution logic and separated state:
       void cancel();
     
   }
-
+`
 The `RequestState` at the base implementation contains unique identifier, executuion state, progress, cancellation mark, and JSON entity for storing extra attributes. It's separated from request in order to simplify persistance. Also `RequestState` provides `ContentValues getValues()` method to store the state in the database. In fact, `RequestState` is `ContentValues`.
 
 After you create a `Request` you should register it in the `Journal`:
