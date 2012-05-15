@@ -16,7 +16,7 @@ public class JournalTests extends AndroidTestCase {
         super.setUp();
         repository = new SimpleRepository();
         executor = new SimpleExecutor(repository, getContext());
-        journal = new DefaultJournal(repository, executor);
+        journal = new DefaultJournal(repository, executor, new SimpleWatcher(repository));
     }
     
     public void testRegistraction() throws Exception {
@@ -36,4 +36,10 @@ public class JournalTests extends AndroidTestCase {
         assertEquals(true, request.isCancelled());
     }
     
+    public void testCancelationWithInterruption() throws Exception {
+        SimpleRequest request = new SimpleRequest();
+        repository.insert(request);
+        journal.cancelOrInterrupt(request.getState().getId());
+        assertEquals(true, request.isCancelled());
+    }
 }

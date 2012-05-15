@@ -1,31 +1,33 @@
 package com.shaubert.net.core;
 
 import com.shaubert.net.nutshell.Request;
+import com.shaubert.net.nutshell.RequestState;
 import com.shaubert.net.nutshell.RequestStateChangeListener;
 
 public abstract class RequestBase implements Request {
 
     private RequestStateBase state;
-    private RequestStateChangeListener<RequestBase> changeListener;
+    private RequestStateChangeListener changeListener;
     
     public RequestBase(RequestStateBase state) {
         this.state = state != null ? state : new RequestStateBase();
     }
-    
-    public void setState(RequestStateBase state) {
-        this.state = state;
-        notifyChangeListener();
-    }
 
-    private void notifyChangeListener() {
+    @Override
+    public void setState(RequestState state) {
+        RequestStateBase oldState = this.state;
+        this.state = (RequestStateBase)state;
+        notifyChangeListener(oldState);
+    };
+    
+    private void notifyChangeListener(RequestStateBase oldState) {
         if (changeListener != null) {
-            changeListener.onRequestStateChanged(this);
+            changeListener.onRequestStateChanged(this, oldState, getState());
         }
     }
     
-    @SuppressWarnings("unchecked")
-    public <T extends RequestBase> void setFullStateChangeListener(RequestStateChangeListener<T> changeListener) {
-        this.changeListener = (RequestStateChangeListener<RequestBase>)changeListener;
+    public void setFullStateChangeListener(RequestStateChangeListener changeListener) {
+        this.changeListener = changeListener;
     }
     
     @Override

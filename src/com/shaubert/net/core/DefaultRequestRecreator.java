@@ -1,13 +1,14 @@
 package com.shaubert.net.core;
 
 import com.shaubert.net.nutshell.RequestRecreator;
+import com.shaubert.net.nutshell.RequestState;
 
 import android.content.Context;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
-public class DefaultRequestRecreator implements RequestRecreator<RequestBase, RequestStateBase> {
+public class DefaultRequestRecreator implements RequestRecreator {
 
     private final Context context;
 
@@ -16,7 +17,7 @@ public class DefaultRequestRecreator implements RequestRecreator<RequestBase, Re
     }
     
     @Override
-    public RequestBase recreate(String className, RequestStateBase state) {
+    public RequestBase recreate(String className, RequestState state) {
         try {
             @SuppressWarnings("unchecked")
             Class<RequestBase> clazz = (Class<RequestBase>)Class.forName(className, true, context.getClassLoader());

@@ -64,12 +64,6 @@ public class RequestStateLoader extends AsyncTaskLoader<RequestState> {
     protected void onStopLoading() {
         cancelLoad();
     }
-
-    @Override
-    public void onCanceled(RequestState data) {
-        repository.unregisterObserver(observer);
-        registered = false;
-    }
     
     @Override
     protected void onReset() {

@@ -3,8 +3,8 @@ package com.shaubert.net.nutshell;
 
 public interface RequestStateWatcher {
 
-    public <T extends Request> void attachRequest(T request);
+    void attachRequest(Request request);
     
-    public <T extends Request> void detachRequest(T request);
+    void detachRequest(Request request);
     
 }

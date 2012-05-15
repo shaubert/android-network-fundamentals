@@ -3,10 +3,11 @@ package com.shaubert.net.core;
 import com.shaubert.net.nutshell.ExecutorBridge;
 import com.shaubert.net.nutshell.Journal;
 import com.shaubert.net.nutshell.Repository;
+import com.shaubert.net.nutshell.Request;
 import com.shaubert.net.nutshell.RequestStateWatcher;
 import com.shaubert.net.nutshell.RequestStatus;
 
-public class DefaultJournal implements Journal<RequestBase> {
+public class DefaultJournal implements Journal {
 
     private Repository<RequestBase> repository;
     private ExecutorBridge executorBridge;
@@ -19,9 +20,10 @@ public class DefaultJournal implements Journal<RequestBase> {
     }
 
     @Override
-    public void register(RequestBase request) {
-        request.getState().setStatus(RequestStatus.NOT_STARTED);
-        repository.insert(request);
+    public void register(Request request) {
+        RequestBase requestBase = (RequestBase)request;
+        requestBase.getState().setStatus(RequestStatus.NOT_STARTED);
+        repository.insert(requestBase);
         executorBridge.queueRequest(request.getState().getId());
     };
 
@@ -32,16 +34,21 @@ public class DefaultJournal implements Journal<RequestBase> {
     
     @Override
     public void cancel(long requestId) {
-        executorBridge.cancelRequest(requestId);
+        executorBridge.cancelRequest(requestId, false);
     }
 
     @Override
-    public void registerForUpdates(RequestBase request) {
+    public void cancelOrInterrupt(long requestId) {
+        executorBridge.cancelRequest(requestId, true);
+    }
+    
+    @Override
+    public void registerForUpdates(Request request) {
         watcher.attachRequest(request);
     }
     
     @Override
-    public void unregisterForUpdates(RequestBase request) {
+    public void unregisterForUpdates(Request request) {
         watcher.detachRequest(request);
     }
     

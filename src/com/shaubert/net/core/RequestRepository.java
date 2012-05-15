@@ -64,10 +64,10 @@ public class RequestRepository implements Repository<RequestBase> {
     }
     
     private ContentResolver contentResolver;
-    private final RequestRecreator<RequestBase, RequestStateBase> recreator;
+    private final RequestRecreator recreator;
     private final Uri uri;
 
-    public RequestRepository(Context context, RequestRecreator<RequestBase, RequestStateBase> recreator, Uri uri) {
+    public RequestRepository(Context context, RequestRecreator recreator, Uri uri) {
         this.recreator = recreator;
         this.uri = uri;
         this.contentResolver = context.getContentResolver();
@@ -82,7 +82,7 @@ public class RequestRepository implements Repository<RequestBase> {
                     ContentValues values = new ContentValues();
                     DatabaseUtils.cursorRowToContentValues(cursor, values);
                     String className = values.getAsString(CLASS_NAME_KEY);
-                    return recreator.recreate(className, new RequestStateBase(values));
+                    return (RequestBase)recreator.recreate(className, new RequestStateBase(values));
                 }
             } finally {
                 cursor.close();

@@ -1,6 +1,14 @@
 package com.shaubert.net.test;
 
+import com.shaubert.net.core.RequestStateBase;
+import com.shaubert.net.nutshell.Request;
+import com.shaubert.net.nutshell.RequestState;
+import com.shaubert.net.nutshell.RequestStateChangeListener;
+import com.shaubert.net.nutshell.RequestStatus;
+
 import android.test.AndroidTestCase;
+
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import junit.framework.Assert;
 
@@ -39,6 +47,23 @@ public class RequestTests extends AndroidTestCase {
         Assert.assertEquals(2, request.getState().getInt("8", 2));
         Assert.assertEquals(2l, request.getState().getLong("9", 2l));
         Assert.assertEquals("2", request.getState().getString("10", "2"));
+    }
+    
+    public void testStateChangeNotify() {
+        SimpleRequest request = new SimpleRequest();
+        final AtomicBoolean changed = new AtomicBoolean(false); 
+        RequestStateBase state = new RequestStateBase();
+        state.setStatus(RequestStatus.PROCESSING);
+        request.setFullStateChangeListener(new RequestStateChangeListener() {
+            @Override
+            public void onRequestStateChanged(Request request, RequestState oldState, RequestState newState) {
+                assertTrue(newState.getStatus() == RequestStatus.PROCESSING);
+                changed.set(true);
+            }
+        });
+        request.setState(state);
+        assertTrue(changed.get());
+        assertEquals(request.getState(), state);
     }
     
 }

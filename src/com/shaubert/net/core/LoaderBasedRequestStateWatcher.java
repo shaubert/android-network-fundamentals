@@ -11,6 +11,8 @@ import android.support.v4.app.LoaderManager;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.Loader;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -18,7 +20,7 @@ public class LoaderBasedRequestStateWatcher implements RequestStateWatcher, Load
 
     private static final String REQUEST_ID = "request-id";
     
-    private static final int OFFSET = 1000;
+    public static final int OFFSET = 1000;
     
     private Repository<Request> repository;
     private Context context;
@@ -27,16 +29,20 @@ public class LoaderBasedRequestStateWatcher implements RequestStateWatcher, Load
 
     private final LoaderManager loaderManager;
     
-    public LoaderBasedRequestStateWatcher(Repository<Request> repository, Context context, LoaderManager loaderManager) {
-        this.repository = repository;
+    @SuppressWarnings("unchecked")
+    public LoaderBasedRequestStateWatcher(Repository<? extends Request> repository, Context context, LoaderManager loaderManager) {
+        this.repository = (Repository<Request>)repository;
         this.context = context;
         this.loaderManager = loaderManager;
+        this.requests = new HashMap<Long, List<Request>>();
     }
 
-    public <T extends Request> void attachRequest(T request) {
+    @Override
+    public void attachRequest(Request request) {
         List<Request> list = requests.get(request.getState().getId());
         boolean needCreate = false;
         if (list == null) {
+            list = new ArrayList<Request>();
             requests.put(request.getState().getId(), list);
             needCreate = true;
         }
@@ -46,7 +52,8 @@ public class LoaderBasedRequestStateWatcher implements RequestStateWatcher, Load
         list.add(request);
     }
     
-    public <T extends Request> void detachRequest(T request) {
+    @Override
+    public void detachRequest(Request request) {
         List<Request> list = requests.get(request.getState().getId());
         if (list != null) {
             list.remove(request);
@@ -77,7 +84,17 @@ public class LoaderBasedRequestStateWatcher implements RequestStateWatcher, Load
     }
 
     public static <T extends Request> int getLoaderId(T request) {
-        return (int)(OFFSET + Math.abs((int)(request.getState().getId() - OFFSET)));
+        int id =  Math.abs((int)(request.getState().getId()));
+        if (id >= OFFSET) {
+            return id;
+        } else {
+            id = Math.abs(id + OFFSET);
+            if (id > OFFSET) {
+                return id;
+            } else {
+                return OFFSET + id;
+            }
+        }
     }
     
     public static <T extends Request> Bundle generateArgsFor(T request) {

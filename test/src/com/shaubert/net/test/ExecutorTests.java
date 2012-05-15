@@ -47,7 +47,7 @@ public class ExecutorTests extends ServiceTestCase<NormalExecutor> {
         super.setUp();
         repository = new SimpleRepository();
         NormalExecutor.repository = repository;
-        journal = new DefaultJournal(repository, new DefaultExecutorBridge(new MyContex(this), NormalExecutor.class));
+        journal = new DefaultJournal(repository, new DefaultExecutorBridge(new MyContex(this), NormalExecutor.class), new SimpleWatcher(repository));
     }
 
     public void testExecution() throws Exception {
@@ -105,6 +105,23 @@ public class ExecutorTests extends ServiceTestCase<NormalExecutor> {
         
         assertEquals(1, request1.executedTimes);
         assertEquals(0, request2.executedTimes);
+    }
+    
+    public void testCancellationWithInterruption() throws Exception {
+        SimpleRequest request1 = new SimpleRequest().enableSleep(1500);
+        SimpleRequest request2 = new SimpleRequest();
+        
+        journal.register(request1);
+        journal.register(request2);
+        
+        Thread.sleep(300);
+        journal.cancelOrInterrupt(request1.getState().getId());
+        
+        request2.waitForExecute();
+        
+        assertTrue(request1.interrupted);
+        assertEquals(0, request1.executedTimes);
+        assertEquals(1, request2.executedTimes);
     }
     
     public void testRequestFailure() throws Exception {

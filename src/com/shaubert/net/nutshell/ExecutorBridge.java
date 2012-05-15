@@ -4,6 +4,6 @@ public interface ExecutorBridge {
 
     void queueRequest(long id);
     
-    void cancelRequest(long id);
+    void cancelRequest(long id, boolean interrupt);
     
 }

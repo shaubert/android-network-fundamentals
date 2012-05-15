@@ -1,8 +1,8 @@
 package com.shaubert.net.nutshell;
 
 
-public interface RequestStateChangeListener<T extends Request> {
+public interface RequestStateChangeListener {
 
-    void onRequestStateChanged(T request);
+    void onRequestStateChanged(Request request, RequestState oldState, RequestState newState);
     
 }

@@ -24,10 +24,11 @@ public class DefaultExecutorBridge implements ExecutorBridge {
     }
 
     @Override
-    public void cancelRequest(long id) {
+    public void cancelRequest(long id, boolean interrupt) {
         Intent intent = new Intent(context, executorClass);
         intent.putExtra(RequestExecutor.EXTRA_ID, id);
         intent.putExtra(RequestExecutor.EXTRA_CANCEL, true);
+        intent.putExtra(RequestExecutor.EXTRA_INTERRUPT, interrupt);
         context.startService(intent);
     }
     

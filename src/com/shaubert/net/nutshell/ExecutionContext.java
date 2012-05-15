@@ -7,6 +7,6 @@ public interface ExecutionContext {
 
     Context getContext();
     
-    <R extends Request, T extends Repository<R>> T getRepository();
+    <T extends Request> Repository<T> getRepository();
     
 }

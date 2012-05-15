@@ -32,7 +32,7 @@ public class SimpleExecutor implements ExecutorBridge, ExecutionContext {
     }
 
     @Override
-    public void cancelRequest(long id) {
+    public void cancelRequest(long id, boolean interrupt) {
         RequestBase request = repository.select(id);
         request.cancel();
         repository.update(request);

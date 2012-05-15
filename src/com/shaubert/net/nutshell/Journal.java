@@ -1,15 +1,17 @@
 package com.shaubert.net.nutshell;
 
-public interface Journal<T extends Request> {
+public interface Journal {
 
-    void register(T request);
+    void register(Request request);
     
-    T getRequest(long requestId);
+    Request getRequest(long requestId);
  
     void cancel(long requestId);
     
-    void registerForUpdates(T request);
+    void cancelOrInterrupt(long requestId);
     
-    void unregisterForUpdates(T request);
+    void registerForUpdates(Request request);
+    
+    void unregisterForUpdates(Request request);
     
 }

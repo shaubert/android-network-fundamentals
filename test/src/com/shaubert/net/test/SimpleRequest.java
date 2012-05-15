@@ -18,6 +18,8 @@ public class SimpleRequest extends RequestBase {
     private int millis;
     private boolean bomb;
     
+    public boolean interrupted;
+    
     public SimpleRequest() {
         this(null);
     }
@@ -33,7 +35,12 @@ public class SimpleRequest extends RequestBase {
         Assert.assertNotNull(executionContext.getRepository());
         
         if (sleep) {
-            Thread.sleep(millis);
+            try {
+                Thread.sleep(millis);
+            } catch (InterruptedException exception) {
+                interrupted = true;
+                throw exception;
+            }
         }
         
         if (bomb) {
@@ -54,6 +61,12 @@ public class SimpleRequest extends RequestBase {
         return this;
     }
     
+    public SimpleRequest enableSleep(int millis) {
+        sleep = true;
+        this.millis = millis;
+        return this;
+    }
+    
     public SimpleRequest enableLongSleep() {
         sleep = true;
         millis = 100;
@@ -71,7 +84,7 @@ public class SimpleRequest extends RequestBase {
                 return;
             }
             try {
-                executionWaiter.wait();
+                executionWaiter.wait(1000);
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }

@@ -8,8 +8,10 @@ public class NormalExecutor extends RequestExecutor {
     
     public static Repository<RequestBase> repository; 
     
-    public NormalExecutor() {
-        super(repository);
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        setRepository(repository);
     }
-
+    
 }

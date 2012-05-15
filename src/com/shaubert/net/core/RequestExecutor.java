@@ -22,17 +22,18 @@ public class RequestExecutor extends Service implements ExecutionContext {
        
     public static final String EXTRA_ID = "_request_id_";
     public static final String EXTRA_CANCEL = "_cancel_";
+    public static final String EXTRA_INTERRUPT = "_interrupt_";
     
     private volatile Looper serviceLooper;
     private volatile ServiceHandler serviceHandler;
     private boolean redelivery;
-    private final Repository<RequestBase> repository;
+    private Repository<RequestBase> repository;
     
     private Object locker = new Object();
     private List<Long> cancelledIds = new ArrayList<Long>();
     private RequestBase executing;
     
-    public RequestExecutor(Repository<RequestBase> repository) {
+    public void setRepository(Repository<RequestBase> repository) {
         this.repository = repository;
     }
     
@@ -51,8 +52,8 @@ public class RequestExecutor extends Service implements ExecutionContext {
 
     @SuppressWarnings("unchecked")
     @Override
-    public <R extends Request, T extends Repository<R>> T getRepository() {
-        return (T)repository;
+    public <T extends Request> Repository<T> getRepository() {
+        return (Repository<T>)repository;
     }
     
     @Override
@@ -63,7 +64,7 @@ public class RequestExecutor extends Service implements ExecutionContext {
     @Override
     public void onCreate() {
         super.onCreate();
-        HandlerThread thread = new HandlerThread(getClass().getName());
+        HandlerThread thread = new HandlerThread(getClass().getSimpleName());
         thread.start();
 
         serviceLooper = thread.getLooper();
@@ -94,7 +95,7 @@ public class RequestExecutor extends Service implements ExecutionContext {
             boolean cancel = hasCancelExtra(intent);
             if (cancel) {
                 cancelledIds.add(id);
-                cancel(request);
+                cancel(request, shouldInterrupt(intent));
             } else {
                 request.getState().setStatus(RequestStatus.QUEUED);
                 repository.update(request);
@@ -113,6 +114,10 @@ public class RequestExecutor extends Service implements ExecutionContext {
     
     private boolean hasCancelExtra(Intent intent) {
         return intent.getBooleanExtra(EXTRA_CANCEL, false);
+    }
+    
+    private boolean shouldInterrupt(Intent intent) {
+        return intent.getBooleanExtra(EXTRA_INTERRUPT, false);
     }
 
     private long getIdOrThrowIfNotExists(Intent intent) {
@@ -166,14 +171,19 @@ public class RequestExecutor extends Service implements ExecutionContext {
             status = RequestStatus.FINISHED_WITH_ERRORS;
         }
         
-        request.getState().setStatus(status);
-        repository.update(request);
+        if (!request.isCancelled()) {
+            request.getState().setStatus(status);
+            repository.update(request);
+        }
     }
     
-    protected void cancel(RequestBase request) {
+    protected void cancel(RequestBase request, boolean interrupt) {
         synchronized (locker) {
             if (executing != null && executing.getState().getId() == request.getState().getId()) {
                 executing.cancel();
+                if (interrupt) {
+                    serviceLooper.getThread().interrupt();
+                }
             }
         }
         request.cancel();

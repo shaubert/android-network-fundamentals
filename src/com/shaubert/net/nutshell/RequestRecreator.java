@@ -1,8 +1,8 @@
 package com.shaubert.net.nutshell;
 
 
-public interface RequestRecreator<T extends Request, S extends RequestState> {
+public interface RequestRecreator {
 
-    T recreate(String className, S state);
+    Request recreate(String className, RequestState state);
     
 }
