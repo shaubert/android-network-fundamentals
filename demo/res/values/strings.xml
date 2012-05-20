@@ -1,7 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="hello">Hello World, Main!</string>
     <string name="app_name">Network Fundamentals Demo</string>
 
+    <string name="dialog_example">Dialog</string>
+    <string name="request_table">Table</string>
+    
+    <string name="add_request">Add Request</string>
+    <string name="clear">Clear Table</string>
+    <string name="cancel_request">Cancel</string>
+    <string name="restart_request">Restart</string>
+    
+    <string name="request_title_format">Request-%d</string>
+    <string name="cancelled">Cancelled</string>
 </resources>

@@ -57,10 +57,8 @@ public class LoaderBasedRequestStateWatcher implements RequestStateWatcher, Load
         List<Request> list = requests.get(request.getState().getId());
         if (list != null) {
             list.remove(request);
-            if (list.isEmpty()) {
-                loaderManager.destroyLoader(getLoaderId(request));
-            }
         }
+        loaderManager.destroyLoader(getLoaderId(request));
     }
     
     @Override
