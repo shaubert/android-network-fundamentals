@@ -4,7 +4,7 @@ import com.shaubert.net.core.DefaultExecutorBridge;
 import com.shaubert.net.core.DefaultJournal;
 import com.shaubert.net.core.DefaultRequestRecreator;
 import com.shaubert.net.core.LoaderBasedRequestStateWatcher;
-import com.shaubert.net.core.RequestRepository;
+import com.shaubert.net.core.RequestRepositoryOnContentResolver;
 import com.shaubert.net.core.RequestStateBase;
 import com.shaubert.net.core.RequestStatusListener;
 import com.shaubert.net.nutshell.Request;
@@ -33,11 +33,13 @@ public class DialogExample extends FragmentActivity {
 
     private ImageView imageView;
 
+    private ProgressDialog progressDialog;
+
     /** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.main);
+        setContentView(R.layout.dialog_example);
         
         imageView = (ImageView)findViewById(R.id.image);
         findViewById(R.id.button).setOnClickListener(new OnClickListener() {
@@ -60,12 +62,13 @@ public class DialogExample extends FragmentActivity {
 
     private void restoreRequest() {
         DataLoadRequest request = (DataLoadRequest)journal.getRequest(requestId); 
+        journal.registerForUpdates(request);
         if (request != null) {
             RequestStatus status = request.getState().getStatus();
             if (!RequestStatus.isFinishedSomehow(status)) {
-                ProgressDialog progressDialog = createProgressDialog(request);
+                progressDialog = createProgressDialog(request);
                 progressDialog.show();
-                RequestStatusListener statusListener = createStatusListener(filename, progressDialog);
+                RequestStatusListener statusListener = createStatusListener(filename);
                 request.setFullStateChangeListener(statusListener);
                 statusListener.processCurrentState(request);
             } else if (!request.isCancelled() && status == RequestStatus.FINISHED) {
@@ -78,10 +81,27 @@ public class DialogExample extends FragmentActivity {
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putLong("requestId", requestId);
+        dismissProgressDialog();
+    }
+
+    
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (isFinishing()) {
+            dismissProgressDialog();
+        }
+    }
+    
+    private void dismissProgressDialog() {
+        if (progressDialog != null && progressDialog.isShowing()) {
+            progressDialog.dismiss();
+        }
     }
     
     private void setupJournal() {
-        RequestRepository repository = new RequestRepository(getBaseContext(), new DefaultRequestRecreator(getBaseContext()), RequestContract.Request.URI);
+        RequestRepositoryOnContentResolver repository = new RequestRepositoryOnContentResolver(
+                getBaseContext(), new DefaultRequestRecreator(getBaseContext()), RequestContract.Request.URI);
         DefaultExecutorBridge executorBridge = new DefaultExecutorBridge(getApplicationContext(), DemoService.class);
         LoaderBasedRequestStateWatcher stateWatcher = new LoaderBasedRequestStateWatcher(repository, getBaseContext(), getSupportLoaderManager());
         journal = new DefaultJournal(repository, executorBridge, stateWatcher);
@@ -91,8 +111,8 @@ public class DialogExample extends FragmentActivity {
         final DataLoadRequest request = new DataLoadRequest("http://assets0.lookatme.ru/assets/event-image/74/d5/72778/event-image-poster.jpg", 
                 filename);
         
-        final ProgressDialog progressDialog = createProgressDialog(request);
-        request.setFullStateChangeListener(createStatusListener(filename, progressDialog));
+        progressDialog = createProgressDialog(request);
+        request.setFullStateChangeListener(createStatusListener(filename));
         
         journal.register(request);
         journal.registerForUpdates(request);
@@ -101,11 +121,11 @@ public class DialogExample extends FragmentActivity {
         return request.getState().getId();
     }
 
-    private RequestStatusListener createStatusListener(final String filename, final ProgressDialog progressDialog) {
+    private RequestStatusListener createStatusListener(final String filename) {
         return new RequestStatusListener() {
             @Override
             public void onFinished(Request request) {
-                progressDialog.dismiss();
+                dismissProgressDialog();
                 if (!request.isCancelled()) {
                     openImage(filename);
                 }
@@ -121,7 +141,7 @@ public class DialogExample extends FragmentActivity {
             
             @Override
             public void onError(Request request) {
-                progressDialog.dismiss();
+                dismissProgressDialog();
                 Toast.makeText(DialogExample.this, ((RequestStateBase) request.getState()).getString("error"), Toast.LENGTH_LONG).show();
                 journal.unregisterForUpdates(request);
             }
@@ -145,5 +165,5 @@ public class DialogExample extends FragmentActivity {
     protected void openImage(String filename) {        
         imageView.setImageURI(Uri.fromFile(new File(filename)));
     }
-    
+
 }

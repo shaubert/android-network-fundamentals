@@ -84,18 +84,4 @@ public class LoaderBasedWatcherTest extends AndroidTestCase {
         assertEquals(0, loaderManager.destroy);
     }
     
-    public void testLoaderId() throws Exception {
-        SimpleRequest request = new SimpleRequest();
-        request.getState().setId(1);
-        int id = LoaderBasedRequestStateWatcher.getLoaderId(request);
-        assertTrue(id >= LoaderBasedRequestStateWatcher.OFFSET);
-        
-        request.getState().setId(Integer.MAX_VALUE + 1);
-        id = LoaderBasedRequestStateWatcher.getLoaderId(request);
-        assertTrue(id >= LoaderBasedRequestStateWatcher.OFFSET);
-        
-        request.getState().setId(Integer.MAX_VALUE - LoaderBasedRequestStateWatcher.OFFSET + 1);
-        id = LoaderBasedRequestStateWatcher.getLoaderId(request);
-        assertTrue(id >= LoaderBasedRequestStateWatcher.OFFSET);
-    }
 }

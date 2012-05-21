@@ -1,7 +1,8 @@
 package com.shaubert.net.core;
 
-import com.shaubert.net.nutshell.Repository;
 import com.shaubert.net.nutshell.RequestRecreator;
+import com.shaubert.net.nutshell.RequestRepository;
+import com.shaubert.net.nutshell.RequestState;
 
 import android.content.ContentProviderOperation;
 import android.content.ContentProviderResult;
@@ -52,7 +53,7 @@ import java.util.List;
  * </pre>
  * 
  */
-public class RequestRepository implements Repository<RequestBase> {
+public class RequestRepositoryOnContentResolver implements RequestRepository<RequestBase> {
 
     public static final String CLASS_NAME_KEY = "_class_name";
     public static final String CREATION_TIME_KEY = "_creation_time";
@@ -67,7 +68,7 @@ public class RequestRepository implements Repository<RequestBase> {
     private final RequestRecreator recreator;
     private final Uri uri;
 
-    public RequestRepository(Context context, RequestRecreator recreator, Uri uri) {
+    public RequestRepositoryOnContentResolver(Context context, RequestRecreator recreator, Uri uri) {
         this.recreator = recreator;
         this.uri = uri;
         this.contentResolver = context.getContentResolver();
@@ -75,14 +76,23 @@ public class RequestRepository implements Repository<RequestBase> {
     
     @Override
     public RequestBase select(long id) {
-        Cursor cursor = contentResolver.query(uri, null, "_id=" + id, null, null);
+        RequestStateBase requestState = (RequestStateBase)selectState(id);
+        if (requestState != null) {
+            return (RequestBase)recreator.recreate(requestState.getValues().getAsString(CLASS_NAME_KEY), requestState);
+        } else {
+            return null;
+        }
+    }
+    
+    @Override
+    public RequestState selectState(long requestId) {
+        Cursor cursor = contentResolver.query(uri, null, "_id=" + requestId, null, null);
         if (cursor != null) {
             try {
                 if (cursor.moveToFirst()) {
                     ContentValues values = new ContentValues();
                     DatabaseUtils.cursorRowToContentValues(cursor, values);
-                    String className = values.getAsString(CLASS_NAME_KEY);
-                    return (RequestBase)recreator.recreate(className, new RequestStateBase(values));
+                    return new RequestStateBase(values);
                 }
             } finally {
                 cursor.close();

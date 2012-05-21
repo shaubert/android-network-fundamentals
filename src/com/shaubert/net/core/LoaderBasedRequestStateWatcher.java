@@ -1,12 +1,13 @@
 package com.shaubert.net.core;
 
-import com.shaubert.net.nutshell.Repository;
 import com.shaubert.net.nutshell.Request;
+import com.shaubert.net.nutshell.RequestRepository;
 import com.shaubert.net.nutshell.RequestState;
 import com.shaubert.net.nutshell.RequestStateWatcher;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.Loader;
@@ -20,18 +21,25 @@ public class LoaderBasedRequestStateWatcher implements RequestStateWatcher, Load
 
     private static final String REQUEST_ID = "request-id";
     
-    public static final int OFFSET = 1000;
-    
-    private Repository<Request> repository;
-    private Context context;
+    private final RequestRepository<Request> repository;
+    private final Context context;
+    private final LoaderManager loaderManager;
+    private final RequestIdMapper requestIdMapper;
     
     private Map<Long, List<Request>> requests;
-
-    private final LoaderManager loaderManager;
+    
+    public LoaderBasedRequestStateWatcher(RequestRepository<? extends Request> repository, FragmentActivity activity) {
+        this(repository, activity, activity.getSupportLoaderManager());
+    }
+    
+    public LoaderBasedRequestStateWatcher(RequestRepository<? extends Request> repository, Context context, LoaderManager loaderManager) {
+        this(repository, context, loaderManager, new RequestIdToLoaderIdConverter());
+    }
     
     @SuppressWarnings("unchecked")
-    public LoaderBasedRequestStateWatcher(Repository<? extends Request> repository, Context context, LoaderManager loaderManager) {
-        this.repository = (Repository<Request>)repository;
+    public LoaderBasedRequestStateWatcher(RequestRepository<? extends Request> repository, Context context, LoaderManager loaderManager, RequestIdMapper idMapper) {
+        this.requestIdMapper = idMapper;
+        this.repository = (RequestRepository<Request>)repository;
         this.context = context;
         this.loaderManager = loaderManager;
         this.requests = new HashMap<Long, List<Request>>();
@@ -57,8 +65,12 @@ public class LoaderBasedRequestStateWatcher implements RequestStateWatcher, Load
         List<Request> list = requests.get(request.getState().getId());
         if (list != null) {
             list.remove(request);
+            if (list.isEmpty()) {
+                loaderManager.destroyLoader(getLoaderId(request));
+            }
+        } else {
+            loaderManager.destroyLoader(getLoaderId(request));
         }
-        loaderManager.destroyLoader(getLoaderId(request));
     }
     
     @Override
@@ -81,18 +93,8 @@ public class LoaderBasedRequestStateWatcher implements RequestStateWatcher, Load
     public void onLoaderReset(Loader<RequestState> loader) {
     }
 
-    public static <T extends Request> int getLoaderId(T request) {
-        int id =  Math.abs((int)(request.getState().getId()));
-        if (id >= OFFSET) {
-            return id;
-        } else {
-            id = Math.abs(id + OFFSET);
-            if (id > OFFSET) {
-                return id;
-            } else {
-                return OFFSET + id;
-            }
-        }
+    private <T extends Request> int getLoaderId(T request) {
+        return requestIdMapper.getLoaderIdFrom(request.getState().getId());
     }
     
     public static <T extends Request> Bundle generateArgsFor(T request) {

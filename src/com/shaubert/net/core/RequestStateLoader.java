@@ -1,7 +1,7 @@
 package com.shaubert.net.core;
 
-import com.shaubert.net.nutshell.Repository;
 import com.shaubert.net.nutshell.Request;
+import com.shaubert.net.nutshell.RequestRepository;
 import com.shaubert.net.nutshell.RequestState;
 
 import android.content.Context;
@@ -11,13 +11,13 @@ import android.support.v4.content.AsyncTaskLoader;
 public class RequestStateLoader extends AsyncTaskLoader<RequestState> {
 
     private RequestState loadedState;
-    private final Repository<Request> repository;
+    private final RequestRepository<Request> repository;
     private final long requestId;
     
     private ContentObserver observer;
     private boolean registered;
     
-    public RequestStateLoader(Context context, Repository<Request> repository, long requestId) {
+    public RequestStateLoader(Context context, RequestRepository<Request> repository, long requestId) {
         super(context);
         this.repository = repository;
         this.requestId = requestId;
@@ -30,7 +30,7 @@ public class RequestStateLoader extends AsyncTaskLoader<RequestState> {
             repository.registerObserver(requestId, observer);
             registered = true;
         }
-        return repository.select(requestId).getState();
+        return repository.selectState(requestId);
     }
     
     @Override

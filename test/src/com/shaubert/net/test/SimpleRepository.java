@@ -1,7 +1,8 @@
 package com.shaubert.net.test;
 
 import com.shaubert.net.core.RequestBase;
-import com.shaubert.net.nutshell.Repository;
+import com.shaubert.net.nutshell.RequestRepository;
+import com.shaubert.net.nutshell.RequestState;
 
 import android.database.ContentObserver;
 
@@ -10,7 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class SimpleRepository implements Repository<RequestBase> {
+public class SimpleRepository implements RequestRepository<RequestBase> {
 
     public Map<Long, RequestBase> requests = new HashMap<Long, RequestBase>();
     public Map<Long, List<ContentObserver>> observers = new HashMap<Long, List<ContentObserver>>();
@@ -20,6 +21,16 @@ public class SimpleRepository implements Repository<RequestBase> {
         return requests.get(id);
     }
 
+    @Override
+    public RequestState selectState(long requestId) {
+        RequestBase request = select(requestId);
+        if (request != null) {
+            return request.getState();
+        } else {
+            return null;
+        }
+    }
+    
     @Override
     public void insert(RequestBase entity) {
         long id = requests.size() + 1;

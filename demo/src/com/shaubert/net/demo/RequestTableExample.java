@@ -4,7 +4,7 @@ import com.shaubert.net.core.DefaultExecutorBridge;
 import com.shaubert.net.core.DefaultJournal;
 import com.shaubert.net.core.DefaultRequestRecreator;
 import com.shaubert.net.core.LoaderBasedRequestStateWatcher;
-import com.shaubert.net.core.RequestRepository;
+import com.shaubert.net.core.RequestRepositoryOnContentResolver;
 import com.shaubert.net.demo.RequestCursorAdapter.OnCancelListener;
 import com.shaubert.net.nutshell.RequestStatus;
 
@@ -60,7 +60,8 @@ public class RequestTableExample extends FragmentActivity implements LoaderCallb
     }
     
     private void setupJournal() {
-        RequestRepository repository = new RequestRepository(getBaseContext(), new DefaultRequestRecreator(getBaseContext()), RequestContract.Request.URI);
+        RequestRepositoryOnContentResolver repository = new RequestRepositoryOnContentResolver(
+                getBaseContext(), new DefaultRequestRecreator(getBaseContext()), RequestContract.Request.URI);
         DefaultExecutorBridge executorBridge = new DefaultExecutorBridge(getApplicationContext(), DemoService.class);
         LoaderBasedRequestStateWatcher stateWatcher = new LoaderBasedRequestStateWatcher(repository, getBaseContext(), getSupportLoaderManager());
         journal = new DefaultJournal(repository, executorBridge, stateWatcher);

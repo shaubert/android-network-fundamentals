@@ -2,7 +2,8 @@ package com.shaubert.net.test;
 
 import com.shaubert.net.core.DefaultRequestRecreator;
 import com.shaubert.net.core.RequestBase;
-import com.shaubert.net.core.RequestRepository;
+import com.shaubert.net.core.RequestRepositoryOnContentResolver;
+import com.shaubert.net.core.RequestStateBase;
 import com.shaubert.net.nutshell.RequestStatus;
 
 import android.test.ProviderTestCase2;
@@ -12,7 +13,7 @@ import java.util.List;
 
 public class RequestRepositoryTests extends ProviderTestCase2<SimpleContentProvider> {
 
-    private RequestRepository repository;
+    private RequestRepositoryOnContentResolver repository;
     
     public RequestRepositoryTests() {
         super(SimpleContentProvider.class, "test");
@@ -21,7 +22,7 @@ public class RequestRepositoryTests extends ProviderTestCase2<SimpleContentProvi
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        repository = new RequestRepository(getMockContext(), new DefaultRequestRecreator(getContext()), SimpleContentProvider.RequestContract.Request.URI);
+        repository = new RequestRepositoryOnContentResolver(getMockContext(), new DefaultRequestRecreator(getContext()), SimpleContentProvider.RequestContract.Request.URI);
     }
     
     protected List<RequestBase> generateRequests(int count) {
@@ -55,6 +56,15 @@ public class RequestRepositoryTests extends ProviderTestCase2<SimpleContentProvi
         
         SimpleRequest request2 = (SimpleRequest)repository.select(request.getState().getId());
         assertEquals(request.getState().getId(), request2.getState().getId());
+    }
+    
+    public void testSelectState() throws Exception {
+        SimpleRequest request = new SimpleRequest();
+        request.getState().put("test", "value");
+        repository.insert(request);
+        
+        RequestStateBase state = (RequestStateBase)repository.selectState(request.getState().getId());
+        assertEquals("value", state.getString("test"));
     }
     
     public void testUpdate() throws Exception {

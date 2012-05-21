@@ -1,6 +1,6 @@
 package com.shaubert.net.demo;
 
-import com.shaubert.net.core.RequestRepository;
+import com.shaubert.net.core.RequestRepositoryOnContentResolver;
 import com.shaubert.net.core.RequestStateBase;
 
 import android.net.Uri;
@@ -34,13 +34,13 @@ public class RequestContract {
         public static final String EXTRAS = RequestStateBase.EXTRAS_KEY;
         
         @Column(type = ColumnType.STRING, nullable = false)
-        public static final String CLASS_NAME = RequestRepository.CLASS_NAME_KEY;
+        public static final String CLASS_NAME = RequestRepositoryOnContentResolver.CLASS_NAME_KEY;
         
         @Column(type = ColumnType.LONG)
-        public static final String CREATION_TIME = RequestRepository.CREATION_TIME_KEY;
+        public static final String CREATION_TIME = RequestRepositoryOnContentResolver.CREATION_TIME_KEY;
         
         @Column(type = ColumnType.LONG)
-        public static final String UPDATE_TIME = RequestRepository.UPDATE_TIME_KEY;
+        public static final String UPDATE_TIME = RequestRepositoryOnContentResolver.UPDATE_TIME_KEY;
         
         public static final Uri URI = Uri.parse("content://demo/request");
     }
