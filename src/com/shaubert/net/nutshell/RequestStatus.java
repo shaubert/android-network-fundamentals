@@ -16,6 +16,10 @@ public enum RequestStatus {
         return status == PROCESSING;
     } 
     
+    public static boolean isWaitingOrProcessing(RequestStatus status) {
+        return isWaiting(status) || isProcessing(status);
+    }
+    
     public static boolean isFinishedSomehow(RequestStatus status) {
         return status == FINISHED || status == FINISHED_WITH_ERRORS;
     }

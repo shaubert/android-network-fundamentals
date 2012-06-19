@@ -30,7 +30,7 @@
             android:label="@string/dialog_example"/>
         
         <service 
-            android:name=".DemoService" />
+            android:name="com.shaubert.dirty.net.DemoService" />
         
         <provider 
             android:name=".RequestContentProvider"

@@ -33,7 +33,7 @@ public class LoaderBasedRequestStateWatcher implements RequestStateWatcher, Load
     }
     
     public LoaderBasedRequestStateWatcher(RequestRepository<? extends Request> repository, Context context, LoaderManager loaderManager) {
-        this(repository, context, loaderManager, new RequestIdToLoaderIdConverter());
+        this(repository, context, loaderManager, new DefaultLoaderIdMapper());
     }
     
     @SuppressWarnings("unchecked")
@@ -57,16 +57,20 @@ public class LoaderBasedRequestStateWatcher implements RequestStateWatcher, Load
         if (needCreate) {
             loaderManager.initLoader(getLoaderId(request), generateArgsFor(request), this);
         }
-        list.add(request);
+        synchronized (list) {
+            list.add(request);
+        }
     }
     
     @Override
     public void detachRequest(Request request) {
         List<Request> list = requests.get(request.getState().getId());
         if (list != null) {
-            list.remove(request);
-            if (list.isEmpty()) {
-                loaderManager.destroyLoader(getLoaderId(request));
+            synchronized (list) {
+                list.remove(request);
+                if (list.isEmpty()) {
+                    loaderManager.destroyLoader(getLoaderId(request));
+                }
             }
         } else {
             loaderManager.destroyLoader(getLoaderId(request));
@@ -83,8 +87,12 @@ public class LoaderBasedRequestStateWatcher implements RequestStateWatcher, Load
     public void onLoadFinished(Loader<RequestState> loader, RequestState data) {
         List<Request> list = requests.get(data.getId());
         if (list != null) {
-            for (Request request : list) {
-                request.setState(data);
+            synchronized (list) {
+                Request[] requests = new Request[list.size()];
+                list.toArray(requests);
+                for (Request request : requests) {
+                    request.setState(data);
+                }
             }
         }
     }
